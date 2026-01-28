@@ -1,0 +1,932 @@
+TEMA 4: PROGRAMACIÓN DINÁMICA:
+
+------- características --------
+
+*) PARA PROBLEMAS DE OPTIMIAZACION (MENOR : MAYOR COSTE)
+
+*) solución se construye paso a paso dividiendo el problema en subproblemas
+
+		--> ESTOS SUBPROBLEMAS se van a almacenar en MEMORIA para evitar REPETICIONES:
+
+			 *) estructuras de almacenamiento auxiliares NECESARIAS (MATRICES, VECTORES...)
+			 *) en estas ALMACENAMOS SIEMPRE lo MÁS ÓPTIMO para cada subproblema
+
+*) DEBE contar con CASO BASE = caso en el que no se necesita dividir en SUBPROBLEMAS para obtener la SOLUCIÓN HASTA EL MOMENTO
+
+*) DEBE contar con EC.RECURRENTE para determinar COSTE
+
+----> RECOMENDABLE pensarlo como una estructura donde cada uno de sus niveles cada vez acumula mas cosas
+
+		PROBLEMA MONEDAS:
+
+		| todas monedas |
+		.				.
+		.				.
+		.       		.
+		| new m + antes |
+		| new m + antes |
+		| primer tipo   |
+
+
+---------------------> PROCEDIMIENTO <-------------------------
+
+¿ es PROBLEMA DE OPTIMIZACION ?
+
+¿ se RESUELVE POR ETAPAS ?
+
+¿ que hacemos en CADA PASO --> ECUACION RECURRENTE ?
+
+¿ que ESTRUCTURA AUXILIAR UTILIZAMOS Y PARA QUE ?
+
+
+*) EJEMPLO:
+
+Se tiene una cuerda de tamaño N que queremos vender, y en la tienda para cada longitud posible (entre 1 y N)
+existe un precio distinto para comprar. Un posible ejemplo de precio ser´ıa:
+
+Longitud 1 2 3 4 5  6  7  8
+Precio   1 5 8 9 10 17 17 20
+
+Viendo la lista observamos que el tendero no es muy listo, y es posible obtener mejor resultado dividi´endola en
+partes, y vendiendo cada una. Por ejemplo, en el ejemplo anterior si tenemos cuerda de longitud 8, en vez de
+venderla directamente (nos dar´ıan 20), podemos cortarla en dos trozos, de 6 y de 2, y obtendr´ıamos 22.
+Vamos a dise ˜nar una funci ´on, que dada una longitud nos diga el mejor precio posible.
+
+• Plant´ee el dise ˜no usando Programaci ´on Din´amica para resolver el problema. (1 punto).
+• Implemente la funci ´on para resolver el problema: (1 punto)
+int precioMaximo(int precios[], int tam, int longitud, list<int> &partes);
+En donde partes ser´ıa la lista de longitudes en las que partirla para conseguir el precio devuelvo por
+par´ametro.
+Se puede implementar sin escribir en partes, con una calificaci ´on de (0.5 puntos)
+
+a)
+
+¿ es PROBLEMA DE OPTIMIZACION ?  --> OBVIO. Buscamos maximizar el coste posible
+¿ se RESUELVE POR ETAPAS ? --> ETAPA = CADA LONGITUDAD. para cada longitudad --> buscamos el maximo coste que podemos obtener con ella
+¿ que hacemos en CADA PASO --> ECUACION RECURRENTE ?
+
+int precioMaximo(int precios[], int tam, int longitud){
+	int *maximo_coste;
+	maximo_coste = new int [tam + 1];
+
+	// si mi longitud es 5, desde 1 hasta 5, en precios() tenemos un coste --> precios(0) = .. , precios(1) = ..., precios(2) = ..., precios(3) = ...., precios(4) = ....
+
+	// el caso base en este caso es que la primera cuerda no va a poder dividirse en partes ya que es la de menor tamaño y no le precede ninguna
+
+	// puede darse el caso en el que haya una cuerda cuyo coste no pueda ser mejordo por lo que copiamos todos los precios y vamos machacando
+
+	for (int i = 1; i <= tam; i++)
+		maximo_coste[i] = precios[i-1];
+
+	// como el primer elemenot no puede ser mejorado
+
+	for (int i = 2; i <= longitud; i++){
+		// maximo(2) = 5
+
+		for (int j = 1; j < i; j++){
+			int valor = maximo_coste[j] + maximo_coste[i-j];
+
+			if (valor > maximo_coste[i]) maximo_coste[i] = valor;
+		}
+	}
+
+	int mejor_coste = maximo_coste[longitud];
+
+	return mejor_coste;
+}
+
+
+--------------> PROBLEMAS BASE A SABER PARA PODER REALIZAR LOS EJERCICIOS:
+
+
+*) EJEMPLO:
+
+---> "AVANZAR CON MOVIMIENTOS POR UNA MATRIZ". SIEMPRE SE HACE IGUAL:
+
+
+1) creamos una matriz en la que almacenar el coste minimo para cada una de las casillas
+2) identificamos el caso base donde el coste es identico al de la matriz pasada como argumento
+3) recorremos la matriz
+4) evaluamos los posibles movimientos teniendo en cuenta que existe un coste acumulativo
+5) una vez rellenamos toda la matriz, nos quedamos con el valor MAXIMO O MINIMO que deseamos encontrar
+
+Dado un tablero t de tamaño n × m de números naturales, se pretende resolver el problema de obtener el camino de la
+casilla (0, 0) a la casillas (n − 1, m − 1) que minimice la suma de los valores t(i, j) de las casillas por las que pasa. En
+cada casilla (i, j) habrá solo dos posibles movimientos: ir hacia abajo, a la casilla (i + 1, j), o ir hacia la derecha, a la
+casilla (i, j + 1) (siempre que no nos salgamos del tablero). Diseñe un algoritmo lo más eficiente posible para resolver
+este problema mediante programación dinámica. Aplíquelo al siguiente tablero de tamañao 4 × 4:
+
+2 8 3 4
+5 3 4 5
+1 2 2 1
+3 4 6 5
+
+
+¿ es PROBLEMA DE OPTIMIZACION ?  --> OBVIO. Buscamos MINIMIZAR el coste posible para llegar a las casillas (n-1, m-1)
+
+--> DOS POSIBLES MOVIMIENTOS:
+	 *) abajo = t(i+1, j)
+	 *) derecha = t(i, j+1)
+
+	 TENER EN CUENTA QUE LAS COL SIEMPRE SON MENORES QUE COL - 1, es decir j < j-1
+
+int costeMinimo (vector<vector<int>> tablero){
+	if (tablero.size() == 0) return 0;
+
+	int filas = tablero.size();
+	int cols = tablero[0].size();
+	vector<vector<int>> t(filas, vector<int>(cols, 0));
+
+	t[0][0] = tablero[0][0];
+
+	// evaluamos todas y cada una de las posiblidades
+
+	for (int i = 0; i < filas; i++){
+		for (int j = 0; j < cols; j++({
+			if (i == 0 and j == 0) continue;
+			else{
+				int coste_casilla = tablero[i][j];
+
+				// evaluamos todos los posibles movimientos y nos quedamos para cada etapa con el que consigue el menor coste de los dos posibles
+
+				int coste_movimiento = 0;
+
+				if (j < cols - 1) coste_movimiento = tablero[i][j+1];
+
+				if (i < filas - 1) coste_movimiento = min(coste_movimiento, tablero[i+1][j];
+
+				t[i][j] = coste_movimiento + coste_casilla;
+			 }
+		}
+	}
+
+	return t[filas-1][cols-1];
+}
+
+
+---> "PROBLEMA DE LA MOCHILA" Y SUS VARIANTES:
+		IMPORTANTE: SI QUEREMOS MINIMZAR CASO BASE ES CON INFNITO
+						SI QUEREMOS MAXIMIZAR CASO BASES ES CON 0
+
+		TENENMOS QUE MAXIMIZAR O MINIMIZAR EL ESPACIO/EL PESO, DE LOS CUALES, NOS DAN SU VALOR Y NO PODEMOS EXCEDERLO
+
+1) creamos una matriz donde sus dimensiones estan determinadas por el num elemenos + 1 y la capacidad + 1
+2) rellenems la matriz normalmente a 0
+3) recorremos la matriz NORMALMENTE desde i = 1 y j = 1
+4) esctrucura de los if IDENTICA
+5) una vez rellenamos toda la matriz, la celda final de la tabla contiene el valor optimo
+
+
+----> DEFINICION RECURSIVA:
+
+MATRIZ(N, capacidad) -----> MATRIZ(N, capacidad) = MATRIZ(N - 1, capacidad) si Ni > capacidad
+									 MATRIZ(N, capacidad) = ecuacion RECURSIVA
+
+int maximoEspacioOcupado(const vector<int> &t, int C){
+	vector<vector<int>> dp(t.size()+1, vector<int>(C+1, 0))  // contamos con una matriz programas x capacidad en la cual podremos evaluar cada una de las etapas
+
+	// es decir, vamos a dividir el problema de contar con una capacidad = 12 a contar con una capacidad 1 2 3 4 5.....
+	// matriz inicializada a 0
+
+	// obviamos el evaluar i=0 e j=0 ya que si la capacidad de nuestro dispositivo es 0, no vamos a poder almacenar nada
+
+	for (int i = 1; i <= t.size(); i++){
+		for (int j = 1; j <= C; j++){
+			if (t[i - 1] > j) dp[i][j] = dp[i-1][j];
+			else {
+				dp[i][j] = max{dp[i-1][j], dp[i-j][j - t[i-1]] + t[i-1];
+		}
+	}
+
+	return dp[t.size()][C];
+}
+
+
+
+*) otro ejemplo:
+
+(2 puntos) Tenemos que pagar la cuenta en un restaurante por valor de M euros, y disponemos
+de una cantidad ilimitada de monedas de n tipos diferentes, siendo c[i] el valor de cada moneda
+de tipo i, i = 1, . . . , n. Tenemos prisa y no queremos esperar que, en su caso, nos den la vuelta,
+pero como no hemos quedado muy satisfechos queremos pagar o la cantidad exacta M o la m ́ınima
+cantidad posible mayor que M (o sea dejar ninguna propina o la m ́ınima propina posible de acuerdo
+a las monedas que tenemos). Dise ̃nar un algoritmo eficiente que determine la cantidad m ́ınima que
+tenemos que pagar y c ́omo hacerlo
+Aplicadlo para resolver el siguiente caso: hay n = 3 tipos de monedas de valores 5, 7 y 13, y
+queremos pagar una cantidad de M = 11 unidades
+
+// cantidad ilimitada de ELEMENTOS/MONEDAS de tipos diferentes --> n
+// vector c para los valores de cada moneda
+
+// CANTIDAD = M
+
+// buscamos pagar O BIEN cantidad = M: O BIEN cantidad MINIMA mayor que M
+
+// es un problema de PD ya que buscamos minimizar
+// el problema puede dividirse en etapas, donde trabajamos con una matriz de n+1 filas y M+1 capacidad --> matriz[n+1][M+1]
+
+// DEFINICION RECURSIVA:
+
+// --> MATRIZ[n monedas][capacidad] ----> si VALOR DE MONEDA (ci) > capacidad (M) -->  MATRIZ[n monedas][capacidad] = MATRIZ[n - 1][capacidad]
+										   // ----> en otro CASO, MATRIZ[n monedas][capacidad] = min{M[i-1][j], M[i-j][j - valor[i-j]] + valor[i-j]};
+
+// PARA ENTENDER:
+// cada una de las casillas M(i, j) representan la cantidad minima de monedas a utilizar del tipo i la cantidad j
+// por ejemplo: La casilla dp[2][7] representaría la cantidad mínima de monedas necesarias para pagar exactamente 7 unidades utilizando solo los primeros 2 tipos de monedas.
+
+// IDENTIFICACION CASOS BASE:
+
+// --> si la cantidad a pagar es 0 entonces para cada moneda tmbn va a ser 0
+// --> si el tipo de moneda es 0, el cual no existe
+// --> si la cantidad a pagar es 1 solo podremos pagarla con la moneda 1 mientras que para el resto de monedas sera 0
+
+for (int i = 0; i <= n; i++){
+	M[i][0] = 0;
+
+for (int j = 1; j <= capacidad; j++){
+	M[0][j] = INF;
+
+
+
+// resto
+
+for (int i = 1; i <=n ; i++){
+	for (int j = 1; j <= capacidad; j++){
+		if (valor[i - 1] > j) M[i][j] = M[i-1][j];
+		else {
+			M[i][j] = min{M[i-1][j], M[i][j - valor[i-1]] + 1};
+			// M[i][j - valor[i-1]] + 1 . lo que buscamos con esto es sumarle 1 para indicar que vamos a utilizar como minimo una moneda de este tipo
+		}
+	}
+}
+
+return M[n][capacidad];
+
+
+*) nuevo ejemplo:
+
+---> "IMPORTANTISISISMO"
+
+	"este ejemplo es muy similar a los hechos anteriormente solo que nos incluye el trabahar con varios vectores
+	"que refieren a costes y cantidades de forma que no contamos con un numero ilimitado de elmentos"
+
+	EN ESTOS CASOS:
+
+	*) tenemos que hacer UN BUCLE ANIDAD MAS referenciando a las cantidades con el objetivo de comprobar si la cantidad
+		de la etapa actual puede ser representada por EL MISMO OBJETO VARIAS VECES, por ejemplo.
+	*) hacemos la condicion de que si, la capacidad es ">=" a k * EL VECTOR DE LOS VALORES EN I-1 y ADEMAS se cumple que
+		"CONDICION TIPICA" m[i-1][j - k(cantidad de ese elemento) * valor[i-1]] != INFINITO..
+	*) min(m[i][j] (que ahora es INF normalemnte), m[i-1][j - k(cantidad de ese elemento) * valor[i-1]] + k)
+
+ (2 puntos) Disponemos de n tipos de monedas, las monedas de tipo i tienen un valor de v[i]. La
+cantidad de monedas disponibles de tipo i es igual a c[i]. Se quiere devolver una cantidad exacta M
+utilizando el menor n ́umero posible de monedas. Dise ̃nad un algoritmo de programaci ́on din ́amica
+que determine el n ́umero  ́optimo de monedas a usar. Aplicadlo para resolver el siguiente caso del
+problema, con n = 3, construyendo la tabla correspondiente:
+v[ ] = (2, 4, 6), c[ ] = (3, 1, 2), M = 8
+
+
+// cantidad de elementos = n
+// contamos con tipos de monedas y cada uno de estos tipos tienen un valor asociado
+// cada tipo de moneda tiene una cantidad disponible para utilizar
+
+// BUSCAMOS MINIMIZAR
+
+// CONTAMOS CON UN VECTOR VALOR y un VECTOR DE CANTIDAD
+
+// cada celda (i, j) representa la cantidad minima de monedas para devolver la cantidad M
+
+// para la implementacion utilizamos una estructura auxiliar que corresponde con una matriz de dimnesiones (n+1) x (M+1) y como
+// el objetivo es minimzar el coste, comenzaremos inicializandola a infinito
+
+for (int i = 0; i < n; i++){
+	for (int j = 0; j < M; j++){
+		m[i][j] = INF;
+
+// identificacion de los casos base
+
+for (int i = 0; i < n; i++)
+	m[i][0] = 0;
+
+// resto
+
+for (int i = 1; i <= n; i++){
+	for (int capacidad = 1; capacidad <= V; capacidad++){
+		if (v[i-1] > capacidad) m[i][capacidad] = m[i-1][capacidad];
+
+		for (int k = 0; k <= c[i-1]; k++){
+			if (capacidad >= k * v[i-1] and m[i-1][capacidad - k * valor[i-1]] != INF)
+				min(m[i][j] (que ahora es INF normalemnte), m[i-1][j - k(cantidad de ese elemento) * valor[i-1]] + k);
+		}
+	}
+}
+
+return m[n][V];
+
+
+
++) otro ejempo:
+
+---> "IMPORTANTE TAMBN"
+
+EN ESTE CASO ESTAMOS TRABAAJANOD CON TRES VECTORES DISTINTOS:
+	*) LITROS
+	*) CANTIDAD
+	*) COSTE
+
+	CANTIDAD nos va a servir para recorrer el numero de envases k tenemos del mismo tipo
+	LITROS nos va a servir para las condiciones y finalmente, y a diferencia del ejempplo anterior donde no contabamos con otro vector
+	observamos k sumabamos K y ya.
+	en este caso SUMAREMOS k * COSTE
+
+2 puntos) Una f ́abrica de pinturas necesita envasar, para satisfacer un pedido, la cantidad de V litros
+de cierta pintura. Para ello dispone de una determinada cantidad de envases de n tipos distintos, e1,
+e2,..., en. La capacidad de cada envase de tipo ei es de li litros, y tiene un coste (el envase) de ci
+euros. Adem ́as, de cada tipo de envase disponemos de ui unidades.
+Se desea determinar la forma de satisfacer el pedido utilizando la combinaci ́on de envases que genere
+el m ́ınimo coste. N ́otese que es posible que en la soluci ́on propuesta algunos envases no queden com-
+pletamente llenos. Dise ̃nad un algoritmo lo m ́as eficiente posible para calcular la soluci ́on  ́optima.
+Aplicadlo al siguiente caso: n = 3, V = 10, y
+capacidad li n ́umero ui coste ci
+3 3 5
+5 3 9
+7 2 12
+
+
+// MINIMIZAR
+
+// CONTAMOS CON UN VECTOR VALOR y un VECTOR DE CANTIDAD
+// cada celda de nuestra matriz representa el numero de envases miinimo que rellena la capacidad de dicha etapa
+
+for (int i = 0; i < n; i++){
+	for (int j = 0; j < V; j++){
+		m[i][j] = INF;
+
+// identificacion de los casos base
+
+for (int i = 0; i < n; i++)
+	m[i][0] = 0;
+
+for (int i = 1; i <= n; i++){
+	for (int capacidad = 1; capacidad <= V; capacidad++){
+		if (litros[i-1] > capacidad) m[i][capacidad] = m[i-1][capacidad];
+
+		for (int k = 0; k <= numero[i-1]; k++){
+			if (capacidad >= k * litros[i-1] and m[i-1][capacidad - k * litros[i-1]] != INF)
+				m[i][capacidad] = min{m[i][capacidad], m[i-1][capacidad - k * litros[i-1]] + k*coste[i-1]};
+		 }
+	}
+}
+
+return m[n][V];
+
+
+---> "MUY IMPORTATNE" DETERMINAR QUE ESTAMOS MOSTRANDO EN NUESTRA MATRIZ POR CADA UNA DE LAS CELDAS PARA POSTERIORMENTE TENERLO EN CUETNA A LA HORA
+		DE TRABAJAR CON MATRICES PARA SABER K TENEMOS QUE SUMAR  ....]] + ...
+
+
+
+-----> """""iMPLEMENTACIONES """""""""""""" CORRECTAS """"""""""""""""""""""""""""""""""""""" <------
+
+(2 puntos) Tenemos que pagar la cuenta en un restaurante por valor de M euros, y disponemos
+de una cantidad ilimitada de monedas de n tipos diferentes, siendo c[i] el valor de cada moneda
+de tipo i, i = 1, . . . , n. Tenemos prisa y no queremos esperar que, en su caso, nos den la vuelta,
+pero como no hemos quedado muy satisfechos queremos pagar o la cantidad exacta M o la m ́ınima
+cantidad posible mayor que M (o sea dejar ninguna propina o la m ́ınima propina posible de acuerdo
+a las monedas que tenemos). Dise ̃nar un algoritmo eficiente que determine la cantidad m ́ınima que
+tenemos que pagar y c ́omo hacerlo
+Aplicadlo para resolver el siguiente caso: hay n = 3 tipos de monedas de valores 5, 7 y 13, y
+queremos pagar una cantidad de M = 11 unidades
+
+// CANTIDAD A DEVOLVER DE M EUROS --> CANTIDAD
+
+// cantidad ilimitada de monedas de N TIPOS DIFERENTES --> no tnemos que preocuparnos por las cantidades de cada tipo de moneda
+// contamos con un vector coste donde tenemos el valor de cada uno de las monedas
+
+// buscamos PAGAR CANTIDAD EXACTA o MINIMIZAR la cantidad K SUPERE A ESTE PRECIO A PAGAR
+
+// CASO BASE: como no existe ningun tipo de moneda = 0 --> no vamos a trabajar con ella y por lo tanto la cantidad que vamos a necesitar de este tipo inexiste va a ser 0
+
+// cada celda (i,j) de dp va a representar la cantidad minima de esa moneada a utilizar
+
+// IMPLEMENTACION:
+
+// CASO BASE:
+
+vector<vector<int>> dp(n+1, vector<int>(C+1, INF))
+
+for (int i = 0; i <= n; i++) dp(i, 0) = 0;
+
+for (int j = 0; j <= C; i++) dp(0, j) = 0;
+
+
+for (int i = 1; i <= n; i++){
+	for (int cantidad = 1; cantidad <= C; cantidad++){
+		if (coste(i-1, cantidad) > cantidad) dp[i][cantidad] = dp(i-1, j); // SI EL COSTE ACTUAL DE LA MONEDA ES MAYOR A LA CANTIDAD A PAGAR TENEMOS QUE UTILIZAR LA MONEDA ANTERIOR
+		else dp(i, cantidad) = min{dp(i - 1,cantidad), dp(i, cantidad - coste(i-1,cantidad)) + 1};
+		// ESCOGEMOS EL MINIMO ENTRE PAGAR LA CANTIDAD ACTUAL SIN UTILIZAR EL TIPO DE MONEDA ACTUAL (ES DECIR, SOLO LOS ANTERIORES) Y UTILIZANDO LA MONEDA ACTUAL, QUE SE CALCULA COMO LA CANTIDAD A PAGAR MENOS EL COSTE K SUPONE + 1,
+		//INDICANDO QUE SE UTILIZA ESTA MANOEDA ATUAL
+
+		// PARA TODOS LOS EJERCICIOS VA A SER IGUAL, COMPROBAR SI CON LAS ANTERIORES SE PUEDE OBTENER EL MINIMO COSTE O BIEN CON LA MONEDA ACTUAL
+	}
+}
+
+return dp(n, C);
+
+
+
+2 puntos) Una f ́abrica de pinturas necesita envasar, para satisfacer un pedido, la cantidad de V litros
+de cierta pintura. Para ello dispone de una determinada cantidad de envases de n tipos distintos, e1,
+e2,..., en. La capacidad de cada envase de tipo ei es de li litros, y tiene un coste (el envase) de ci
+euros. Adem ́as, de cada tipo de envase disponemos de ui unidades.
+Se desea determinar la forma de satisfacer el pedido utilizando la combinaci ́on de envases que genere
+el m ́ınimo coste. N ́otese que es posible que en la soluci ́on propuesta algunos envases no queden com-
+pletamente llenos. Dise ̃nad un algoritmo lo m ́as eficiente posible para calcular la soluci ́on  ́optima.
+Aplicadlo al siguiente caso: n = 3, V = 10, y
+capacidad li n ́umero ui coste ci
+3 3 5
+5 3 9
+7 2 12
+
+
+// CANTIDAD A SATISFACER  =  V litros
+// contamos con un vector de cantidades para cada envase, luego no es un numero ilimitado --> cantidades
+// contamos con n tipos distintisode evanses
+// contamos con x listros para cada tipo de envase --> vector llitros
+// contamos con un vector de costes para cada envase --> vector costes
+
+// VECTORES:
+
+// *) UNIDADES
+// *) COSTES
+// *) LITROS
+
+// NECESITAMOS OBTENER EL MINIMO "COSTE", ES DECIR ---> MINIMIZAR
+// COMO BUSCAMOS MINIIMZAR, RELLENAREMOS LA MATRIZ CON INF
+
+// IMPLEMENTAMOS UNA MATRIZ DONDE CADA CELDA (i,j) corresponde con el coste minimo con el que rellenar
+// el envase
+
+vector<vector<int>> dp(n+1, vector<int>(C+1, INT_MAX))
+
+// lla matiz que creams cuent con dimensieosn n+1 x c+1
+
+// caso base:
+// No EXISTE envase tipo 0 asi que no podemos rellenarno con nada y ponemos 0 entonces
+
+for (int i = 0; i <= n; i++) dp(i, 0) = 0;
+for (int j = 0; j <= C; j++) dp(0,j) = 0;
+
+for (int i = 1; i <= n; i++){
+	for (int capacidad = 1; capacidad <= C; capacidad++){
+		if (litros(i-1, j) > capacidad) dp(i, j) = dp(i-1, j);
+
+		for (int k = 0; k <= unidades(i-1); k++){
+			if (capacidad >= k * litros(i-1) and dp(i, j - k * litros(i-1, j)) != INT_MAX)
+				dp(i, j) = min{dp(i-1, j), dp(i, j -k * litros(i-1,j)) + k * costes(i-1)}
+		}
+	}
+}
+
+return dp(n, C);
+
+
+
+
+
+_------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Se tiene una cuerda de tamaño N que queremos vender, y en la tienda para cada longitud posible (entre 1 y N)
+existe un precio distinto para comprar. Un posible ejemplo de precio ser´ıa:
+
+Longitud 1 2 3 4 5  6  7  8
+Precio   1 5 8 9 10 17 17 20
+
+Viendo la lista observamos que el tendero no es muy listo, y es posible obtener mejor resultado dividi´endola en
+partes, y vendiendo cada una. Por ejemplo, en el ejemplo anterior si tenemos cuerda de longitud 8, en vez de
+venderla directamente (nos dar´ıan 20), podemos cortarla en dos trozos, de 6 y de 2, y obtendr´ıamos 22.
+Vamos a dise ˜nar una funci ´on, que dada una longitud nos diga el mejor precio posible.
+
+• Plant´ee el dise ˜no usando Programaci ´on Din´amica para resolver el problema. (1 punto).
+• Implemente la funci ´on para resolver el problema: (1 punto)
+int precioMaximo(int precios[], int tam, int longitud, list<int> &partes);
+En donde partes ser´ıa la lista de longitudes en las que partirla para conseguir el precio devuelvo por
+par´ametro.
+Se puede implementar sin escribir en partes, con una calificaci ´on de (0.5 puntos)
+
+
+// CUERDA LONGITUD N
+// para cada una de las longitudes = para cada "etapa", luego, ya sabemos que cada una de las etapas a resolver va a ser la mejor optimizacion para cada longitud, de menos a mas
+
+// BUSCAMOS MAXIMIZAR EL PRECIO A OBTENER
+
+// POR LA TANTO, se trata de un problema de optimizacion que se puede resolver por porgramacion DINAMICA
+// sabemos que cada una de las ETPAS corresponde con el ENCONTRAR LO MAXIMO QUE PODEMOS OBTENER PARA CADA UNA DE LAS LONGITUDES TENIENDO EN CUENTA QUE VAMOS A PODER DIVIR DICHA
+// LONGITUD EN PARTES
+
+// CASO BASE:
+
+int precioMaximo(int precios[], int tam, int longitud){
+	vector<int> max_precios(longitud + 1, 0); // SIEMPRE PARA LAS ESCTRCUTURAS AUXILIARES K UTILICEMOS, SIEMPRE VAMOS A CREARLLAS CON "" + 1, ES DECIR N ELEMENTOS¿??¿, pues N+1,
+	                                          // longitud??, pues longitud + 1
+
+	// para cada etapa, es decir, para cada longitud, nos quedamos con el miaxmo precio a almacenar posible k se puedeobtener dividiendo la cuerad en partes
+
+	// CASO BASE:
+
+	if (longitud == 1) return precios[0];
+	if (longitud == 0) return 0;
+
+	// caso base corresponde con que la priemra longitud no se va a poder dividir en aprtes por lo tanto no la tenemos en cuenta a la hora de hacer los for
+
+	for (int i = 1; i <= longitud; i++){
+		max_precios[i] = precios[i-1];
+	}
+
+	for (int i = 1; i <= longitud; i++){
+		for (int j = 1; j <= i; j++){
+			// a la hora de trabajar con las ecuaciones RECURRENTES, sabemos que VA ASER PRINICPAL EL HECHO DE TRABAJAR con las estrcuturas auxiliares, en este caso, utilizamos
+			// max_precios en vez de utiliazr precios aunque podria utilizarse, solo k no estariamos haciendo uso de la prgoramacion dinamica
+
+			int precio = max_precio[j] + max_precio[i-j];
+			max_precios[i] = max{max_precio[i], precio};
+		}
+	}
+
+	return max_precios[longitud];
+}
+
+
+
+Dado un tablero t de tamaño n × m de números naturales, se pretende resolver el problema de obtener el camino de la
+casilla (0, 0) a la casillas (n − 1, m − 1) que minimice la suma de los valores t(i, j) de las casillas por las que pasa. En
+cada casilla (i, j) habrá solo dos posibles movimientos: ir hacia abajo, a la casilla (i + 1, j), o ir hacia la derecha, a la
+casilla (i, j + 1) (siempre que no nos salgamos del tablero). Diseñe un algoritmo lo más eficiente posible para resolver
+este problema mediante programación dinámica. Aplíquelo al siguiente tablero de tamañao 4 × 4:
+
+2 8 3 4
+5 3 4 5
+1 2 2 1
+3 4 6 5
+
+// TABLERO DE TAM NXM
+// BUSCAMOS OBTENER --> CAMINO DESDE 0,0 HASTA N-1, M-1
+// OBJETIVO: MINIMIZAR EL COSTE DE LAS CASILLAS A PARTIR DE DOS POSIBLES MOVIMIENTOS:
+// 		*) ABAJO
+//			*) HACIA LA DERECHA
+
+// IMPORTANTE: SIEMPRE TENER EN CUENTA LAS DIMENSIONES DE LA MATRIZ A LA HORA DE REALIZAR LOS MOVIMIENTOS
+
+// AL SER UN ALG DE PROGRAMACOIN DINAMICA, REQUERIMOS DE UNA ESTRUCTURA AUXILIAR, en este caso, utilizaremos una matriz auxiliar
+// donde cada una de sus celdas van a representar el coste minimo para poder alcanzar la casilla (i,j) estudiando los dos posibles movimientos
+
+// cada etapa corresponde con cada uno de los niveles de nuestra matriz y pq casilla vamos a avanzar
+// importante tener en cuenta que amos a trabajar con un coste acumulativo
+
+
+int costeMinimo(vector<vector<int>> tablero){
+	if (tablero.size() == 0) return 0;
+
+	// creamos la estructura adicional
+
+	int filas = tablero.size();
+	int cols = tablero[0].size();
+
+	vector<vector<int>> costes(filas, vector<int>(cols, INT_MAX); //  como queremos minimimzar, todo inicialiazdo a intMAX
+
+	// identificacion del caso base:
+	// EL CASO BASE CORRESPONDE CON LA PRIEMRA CASILLA, QUE VA A SER LA UNICA DE TODAS LAS POSIBLES EN NUESTRO TABLERO DONDE
+	// EL COSTE PARA ALCANZARLA NO VAMOS A PODER MINIMIZARLO PUESTO QUE ES EL PUNTO DE PARTIDA --> (0,0)
+
+	costes[0][0] = tablero[0][0];
+
+	for (int fil = 0; fil < filas; fil++){
+		for (int col = 0; col < cols; col++){
+			if (fil == 0 and col == 0) continue;
+				int coste_casilla = tablero[fil][col];
+
+				// TENIENDO EN CUENTA QUE SIEMPRE ESTEMOS DENTRO DE LAS DIMENSIONES DE NUESTRA MATRIZ
+
+				if (col < col - 1 and col > 0) costes[fil][col] = min{costes[fil][col], costes[fil][col+1] + coste_casilla};
+				if (fil < fil - 1 and fil > 0) coste_movimiento = min{costes[fil][col], costes[fil+1][col] + coste_casilla};
+		}
+	}
+
+	return costes[filas-1][cols-1];
+}
+
+
+
+(2 puntos) Tenemos que pagar la cuenta en un restaurante por valor de M euros, y disponemos
+de una cantidad ilimitada de monedas de n tipos diferentes, siendo c[i] el valor de cada moneda
+de tipo i, i = 1, . . . , n. Tenemos prisa y no queremos esperar que, en su caso, nos den la vuelta,
+pero como no hemos quedado muy satisfechos queremos pagar o la cantidad exacta M o la m ́ınima
+cantidad posible mayor que M (o sea dejar ninguna propina o la m ́ınima propina posible de acuerdo
+a las monedas que tenemos). Dise ̃nar un algoritmo eficiente que determine la cantidad m ́ınima que
+tenemos que pagar y c ́omo hacerlo
+Aplicadlo para resolver el siguiente caso: hay n = 3 tipos de monedas de valores 5, 7 y 13, y
+queremos pagar una cantidad de M = 11 unidades
+
+// SABEMOS QUE LA CANTIDAD A PAGAR ES M EUROS, luego CADA ETAPA CORRESPONDE CON CADA UNA DE LAS CANTIDADES POSIBLES A PAGAR HASTA LLEGAER A M
+// contamos con una cantidad ILIMITADA de monedas, por lo que no hay que cerciorarse de si estamos o no gastando monedas
+
+// CONTAMOS CON --> VECTOR DE VALORES/COSTES
+
+// BUSCAMOS O PAGAR LA CANTIDAD EXACTA QUE ES M O BIEN BUSCAMOS EN ESTE CASO PAGAR LA CANTIDAD MINIMA POSIBLE QUE SUPERE A LA CANTIDAD M A PAGAR
+
+// PARA LA IMPLEMENTACION, vamos a utilizar una matriz auxiliar de dimensiones n+1 elementos x M+1 euros
+// de esta manera, cada una de las etapas correspondera con el calculo de la cantidad minima de moendas que tenemos que usar para poder pagar esa cantidad ---> CANTIDAD A UTILIZAR , No costes
+// DICHO ESTO. la ecuacion recurrente que vamos a aplicar para cada una de las celdas (i,j) es la siguiente:
+
+// m[N][M] ------> si c[i-1] > a_pagar --> M[I][J] < --- M[I-1][J]  --> si no podemos pagar la cantidad con el tipo de moneda actual entonces utilizamos llos tipos usados anteriormente
+//         ------> si no se cumple, es decir, si podemos pagar la cantidad cn la nueva moneda
+//
+//						 calculamos la cantidad minima a utilizr entre coger solamente las moendas anteriores o bien utiliazr una moneda nueva como MINIMO y el resto rellenado con otras o con esta misma
+//						 --> M[I][J] = Min{M[I-1][J], M[I][J - C[i-1]] + 1}
+
+
+//  IMPLEMENTACION
+
+// MUY IMPORTANTE, AL TRATARSE DE UN PROBLEMA DE MINIMIZACION, RELLENAMOS LA MATRIZ AL VALOR MAS GRANDE POSIBLE.
+// ADEMAS, ES MUY IMPORTANTE TENER EN CUENTA EL CASO BASE, QUE EN ESTE PROBLEMA CORRESPONDE CON LA MONEDA DE TIPO 0,
+// LA CUAL NO EXISTE Y POR LO TANTO, LA CANTIDAD QUE VAMOS A UTILIZAR DE ELLA PARA TODAS Y CADA UNA DE LAS CANTIDADES VA A SER 0
+
+
+int cambioMinimo(vector<int> costes[], int M, int n){
+	if (costes.size() == 0) return 0;
+	if (M == 0)  return 0;
+
+	// creamos la matriz a utilizar
+
+	vector<vector<int>> m(n+1, vector<int>(M+1, INT_MAX);
+
+	// APLICAMOS CASOS BASE MENCINOADOS ANTERIORMENTE
+
+	for (int i = 0; i <= n; i++) m[i][0] = 0;
+
+	for (int i = 1; i <= n; i++){
+		for (int a_pagar = 1; a_pagar <= M; a_pagar++){
+			if (costes[i-1] > a_pagar) m[i][a_pagar] = m[i-1][a_pagar];
+			else{
+				m[i][a_pagar] = min{m[i-1][a_pagar], 1 + m[i][a_pagar - costes[i-1]]};
+			}
+		}
+	}
+
+	int cantidad_minima = m[n][M];
+   for (int a_pagar = M + 1; a_pagar <= 2 * M; a_pagar++) {
+      if (m[n][a_pagar] != INT_MAX) {
+      	cantidad_minima = a_pagar;
+         break;
+        }
+    }
+
+
+	return cantidad_minima;
+}
+
+
+2 puntos) Una f ́abrica de pinturas necesita envasar, para satisfacer un pedido, la cantidad de V litros
+de cierta pintura. Para ello dispone de una determinada cantidad de envases de n tipos distintos, e1,
+e2,..., en. La capacidad de cada envase de tipo ei es de li litros, y tiene un coste (el envase) de ci
+euros. Adem ́as, de cada tipo de envase disponemos de ui unidades.
+Se desea determinar la forma de satisfacer el pedido utilizando la combinaci ́on de envases que genere
+el m ́ınimo coste. N ́otese que es posible que en la soluci ́on propuesta algunos envases no queden com-
+pletamente llenos. Dise ̃nad un algoritmo lo m ́as eficiente posible para calcular la soluci ́on  ́optima.
+Aplicadlo al siguiente caso: n = 3, V = 10, y
+capacidad li n ́umero ui coste ci
+3            3          5
+5            3          9
+7            2          12
+
+
+// OBJETIVO --> ENVASAR V LITROS --> donde V es la cantidad y por lo tanto, el problema para rellenar dicha cantidad de V litros
+// vamos a dividirlo en ETAPADS
+// CADA UNA DE LAS ETAPAS CORRESPONDE CON EL CALCULO DEL MENOR COSTE PARA CADA UNA DE LAS CANTIDADES POSIBLES DESDE 1 HASTA V CON LOS DISTINTOS TIPOS DE ENVASES
+
+// ESTRUCTURAS CON LAS QUE TRABAJAMOS:
+// 	*) UNIDADES ui --> NUMERO DE ELEMENTOS --> n
+//		*) LITROS li   --> CAPACIDAD
+//    *) COSTE ci    --> VALOR ------> importante --> CADA UNA DE LAS CELDAS DE LA ESTRUCTURA AUXILIAR QUE VAMOS A UTILIZAR TIENEN QUE REPRESENTAR UN <<COSTE>>
+
+// PARA CADA TIPO Ti DE ENVASE TENEMOS X UNIDADES ui, LUEGO NO SON ILIMITADAS
+
+// LA ESTRUCTURA AUXILIAR QUE SE VA A UTILIZAR PARA PODER LLEVAR A CABO LA RESOLUCION DE CADA UNA DE LAS ETAPAS DE FORMA OPTIMA Y OBTENER FILAMNTE UNA SOLUCION EFICINETE Y OPTIMA
+// CORRESPONDE CON UNA MATRIZ DE DIMENSIONES n elementos + 1 x V capacidad + 1  --> INT_MAX
+// cada celda (i,j) corresponde con el coste minimo para rellenar el envase de x capacidad
+
+// m[n][m] -----> si li[i-1][j] > capacidad --> m[i][CAPACIDAD] < ---- M[I-1][J];
+//   		  -----> si no ocurre, es decir, si podemos utilizar el nuevo tipo de envase, deberemos de comrpobar con cuantas unidades obtenemos el mejor resultado
+
+						/**
+						para cada valor de unidad, comprobaremos que la capacidad siga siendo mayor o igual a las unidades actuales * litros que pueden rellenar cada una de ellas
+						ademas de comprobar si el utilizar o no la moneda actual es valido
+						**/
+
+// CASOS BASE:
+// el caso base vuelva a corresponde con no poder utilizar el evnase 0
+
+int rellenarMinimo(vector<int> costes[], vector<int> litros[], vector<int> unidades[], int n, int V){
+	if (n == 0) return 0;
+	if (V == 0) return 0;
+
+	/// creamoes nuestra estructura aux:
+
+	vector<vector<int>> m(n+1, vector<int>(V+1, INT_MAX));
+
+	for (int i = 0; i <= n; i++) m[i][0] = 0;
+
+	for (int i = 1; i <= n; i++){
+		for (int capacidad = 1; capacidad <= V; capacidad++){
+			if (litros[i-1] > capacidad) m[i][capacidad] = m[i-1][cantidad];
+
+			for (int k = 1; k <= unidades[i-1]; k++){
+				if (capacidad >= k * litros[i-1] and m[i][capacidad - k * litros[i-1]] != INT_MAX)
+					m[i][capacidad] = min(m[i-1][capacidad], m[i][capacidad - k * litros[i-1]] + k * costes[i-1]);
+			}
+		}
+	}
+
+	return m[n][V];
+}
+
+
+(2 puntos) Disponemos de n tipos de monedas, las monedas de tipo i tienen un valor de v[i]. La
+cantidad de monedas disponibles de tipo i es igual a c[i]. Se quiere devolver una cantidad exacta M
+utilizando el menor n ́umero posible de monedas. Dise ̃nad un algoritmo de programaci ́on din ́amica
+que determine el n ́umero  ́optimo de monedas a usar. Aplicadlo para resolver el siguiente caso del
+problema, con n = 3, construyendo la tabla correspondiente:
+v[ ] = (2, 4, 6), c[ ] = (3, 1, 2), M = 8
+
+// contamos CON N TIPOS DE MONEDAS --> N ELEMENTOS
+// contamos con un vector de VALORES vi PARA CADA TIPO DE MOENDA Ti
+// contamos con un vector de CANTIDADES ci para cada tipo de MONEDA Ti
+
+// OBJETIVO --> devolver una cantidad A_PAGAR "M" donde M es la cantidad a pagar y por lo tanto vamos a resolver el problema de la siguiente forma:
+// Caada una de las etapas va a corresponder en etste caso con la obtencion de el numero minimo de monedas a utilizar de cada tpo o mezclandolas para ALCANZAR DESDE 1 HASTA M CANTIDAD A PAGAR
+
+// estructuras:
+//		*) CANTIDADES ci --> N de monedas de tipo
+//		*) VALORES vi 	  --> VALOR  de cada moneda de tipo i
+
+// MUY IMPORTANTE:
+// para llevar a cabo su implementacion por medio de la PD utilizaremos una estrucutra auxiliar, en concreto una MATRIZ de dimensiones N elementos + 1 x M cantidad a_pagar + 1
+
+// De esta forma, cada una de las celdas (I,j) VAN A REPRESENTAR EL NUMERO MINIMO DE MONEDAS A UTILIZAR PARA PODER PAGAR DICHA CANTIDAD EN CADA UNA DE LAS ETAPAS
+
+// EL CASO BASE VUELVE A SER EL MISMO DE LOS EJERCICIOS ANTERIOES. AL NO EXISTIR UNA MONEDA DE TIPO 0, LA CNTIDAD DE MONEDAS DE ESTE TIPO VA A SER 0 AL IGUAL QUE LA CANTIDAD DE MONEDAS
+// A UTILIZAR DE CADA TIPO PARA UNA CANTIDAD 0
+
+// m[n][M] ---> si v[i] > a_pagar --> m[i][j] < -- m[i-1][j]   ---> es decir, si la cantidad actual a pagar no puede ser obtenida con la moneda del nuevo tipo ya que sobrepasa, utilizamos las monedas de tipos anteriores
+		     /**** si no ocurre esto, es decir, si la capacidad puede ser obtenida con las monedas del tipo actual, deberemos comprobar con cuantas monedas de ese tipo se puede cumplir o con cuantas moendas de ese tipo mas el restante
+		   	para ello, comprobamos con todas las cantidades de las cuales podemos disponer de cada tipo de moneda
+
+				**/
+
+// IMPLEMNETACION
+
+int devolucionMinima(vector<int> cantidades[], vector<int> valor[], int n, int M){
+	if (n==0) return 0;
+	if (M==0) return 0;
+
+	// creamos nuestra estructura auxiliar donde cada una de las celdas contiene el NUM de monedas a utiliazr
+
+	vector<vector<int>> m(n+1, vector<int>(M+1, INT_MAX));
+
+	// CASOS BASE:
+
+	for (int i = 0; i <= n; i++) m[i][0] = 0;
+
+	for (int i = 1; i <= n; i++){
+		for (int a_pagar = 1; a_pagar <= M; a_pagar++){
+			// if (valor[i-1] > a_pagar) m[i][a_pagar] = m[i-1][a_pagar]; // es decir, si no podemos pagarla con la moenda actual pq sobrepasa, utiliazmos las anteriores
+
+			m[i][a_pagar] = m[i-1][a_pagar];
+
+			for (int k = 1; k <= cantidades[i-1]; k++){
+				if (a_pagar >= k * valor[i-1] and m[i][a_pagar - k * valor[i-1]] != INT_MAX)
+					m[i][a_pagar] = min(m[i][a_pagar], k + m[i][a_pagar - k * valor[i-1]]);
+			}
+		}
+	}
+
+	return m[n][V];
+};
+
+
+
+
+
+
+------------> INCLUIMOS UN NUEVO ALGORITMO PARA RESOLVER PROGRMAACION DIAMICA- ------> Algoritmo de Floyd
+
+// USO:  ENCONTRAR CAMINOS ENTRE NODOS PASANDO POR NODOS INTERMEDIOS (CIUDADES, ...)
+// Este algoritmo es adecuado para encontrar las distancias más cortas entre todos los pares de vértices en un grafo ponderado
+
+/**
+
+function Floyd(Matrix, n)
+	D ← Matrix. // hacemos un copia y pega literal de la matriz  --> vector<vector<int>> mi_matriz = Matrix
+
+	for k=1 to n do
+		for i=1 to n do
+			for j=1 to n do
+				if D[i][j] > D[i][k] + D[k][j] then
+					D[i][j] ← D[i][k] + D[k][j].
+
+				end if
+			end for
+		end for
+	end for
+
+return D
+end function
+
+**/
+
+PARA ESTE ALGORITMO, como lo MAS NORMAL ES QUE TRABAJEMOS CON LA MINIMIZACION,
+ASIGNAREMOS LA MATRIZ AUXILIAR A LA MATRIZ POR PARAMETRO PARA TENER SUS DIMENSIOENS Y LUEGO
+LA RELLENAMOS ENTERA CON INF O INT_MAX;
+
+por lo tanto, al igual que en lo demas tipos de algoritmos, comprobamos que sean valores validos con != INT_MAX
+en este caso va a ser IDENTIDO para d[i][k] y d[k][j] donde compraremos si son != INT_MAX O INF A PARTE de la condicion tipica
+
+// EJERCICIO JORGE --> PRACTICA PD
+
+// contamos con N elementos ---> CIUDADES
+// nos dicen que para ir de la ciudad i a la ciudad j puede ser necesario hacer escala en otra ciudad k
+
+// si en algun MOMENTO neesitamos coger un vuelo de i a k y despues de k a j hay que tener en cuenta el tiempo que supone de espera la escala que es de 1.
+// NOS DAN YA LA EC RECURRENTE : T(i, j) = T(i,k) + T(k, j) + E(k) = 1
+
+// OBJETIVO MINIMIZAR EL TIEMPO PARA LLEGAR DE I A J
+
+// para resolver este problema aplicamos el algoritmo de FLOYD
+
+
+/*
+
+Una empresa realiza planificaciones de viajes areos entre n ciudades. para ir de una ciudad i a una ciudad j puede ser necesario coger varios vuelos distintos.
+el tiempo de un vuelo directo de ia  j sera (si existe) T(i, j) (que puede ser distinto de T(j,i)).
+hay qye tener en cuenta que si cogemos un vuelo de i a k y despues otro de k a j, sera necesario esperar un tiempo de escala adicional E(k) en el aeropuesto de k con lo que el tiempo de ese viaje de i a j sera de T(i,k) + T(k, j) + E(k) = 1.
+se desea cnocer la fomra de volar desde cualquier ciudad i hasta cualquier otra j en el menor tiempo posible.
+implementar un algoritmo de programacion dinamica para su resolucion.
+*/
+
+vector<vector<int>> escalaMinima(int n, vector<vector<int>> matrix){
+	if (n==0) return;
+	if (matriz.size() == 0) return;
+
+	// creamos nuestra matriz auxiliar
+
+	vector<vector<int>> m = matrix;
+	for (int k = 0; k < n; k++){
+		for (int i = 0; i < n; i++){
+			for (int j = 0 ; j < n; j++){
+				if (m[i][j] > m[k][j] + m[i][k] + 1 and m[k][j] != INF and m[i][k] != INF)
+					m[i][j] = m[k][j] + m[i][k] + 1;
+			}
+		}
+	}
+
+	return m;
+}
+
+
+
+/*
+
+a lo largo de un rio hay n aldeas. en cada aldea, se puede alquilar una canoa para viajar a otras aldeas
+que este a favor de la corriente (resulta casi imposible remar a contra corrient): para todo posible punto de partia i y para todo posible punto de llegada j mas abajo en el rio (i < j), se conoce el coste de alquilar una canoa para ir desde i hasta j, c(i, j) (si ese trayecto concreto no existe, entonces c(i, j) = INF. sin embargo, puede ocurrir que el coste del alquiler desde i hasta j sea mayor que el coste total de una serie de alquileres mas breves.
+en tal caso, se puede devvolver la priemra canoa en alguna aldea de k situada entre i y j y seguir el camino alquilando en k una nueva canoa (no hay costes adicionales por cambiar de canoa de esta manera).
+diseñe un algoritm de programacion dinamica para determinar el coste minimo del viaje en canoa desde todos los puntos posibles de partida i a todos los posibles puntos de llegada j (i < j)
+
+
+// CONTAMOS CON N ELEMENTOS --> ALDEAS
+// LA CIUDAD DE SALIDA I DEBE SER (I < CIUDAD DE LLEGADA J )
+
+// CONTAMOS CON UNA MATRIZ COSTE PASADA COMO ARGUMETNO DONDE SI EL TRAYECTO NO EXSITE --> INF
+
+// DETERMINAR UNA MATRIZ CON LOS COSTES MINIMOS
+
+*/
+
+vector<vector<int>> canoaMinima(vector<vector<int>> costes, int n){
+	if (n==0) return;
+	if (costes.size()==0) return;
+
+	vector<vector<int>> m = costes;
+
+	for (int k = 0; k < n; k++){ // cambio de canoa
+		for (int i = 0; i < n; i++){ // ciudad de salida
+			// como sabemos, j debe de ser mayor que i (i < j) por lo que debe de comenzar en una posi adelantada
+			for (int j = i + 1; j < n; j++){
+				if (m[i][j] > m[i][k] + m[k][j] and m[i][k] != INF and m[k][j] != INF)
+					m[i][j] = m[i][k] + m[k][j];
+			}
+		}
+	}
+
+	return m;
+}
