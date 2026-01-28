@@ -1,0 +1,2 @@
+problema4 : problema4.cpp
+	g++ -o problema4 problema4.cpp

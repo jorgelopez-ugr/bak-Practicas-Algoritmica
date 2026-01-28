@@ -1,0 +1,63 @@
+function caminoMasCorto(vector<vector<int>> matriz, int ini, int fin):
+	coste_directo = coste del viaje directo entre la ciudad ini y la ciudad fin
+	soluciones_parciales = matriz que almacena las soluciones que aun estan pendientes de estudio
+	soluciones_desechadas = matriz de secuencias que no merece la pena seguir estudiando
+	soluciones = matriz de secuencias posibles mejores soluciones
+	secuencia = vector con el que vamos a manipular
+	coste = variable entera con el que vamos a trabajar
+	
+	costes_ya_calculados = diccionario que almacena secuencias y su coste para evitar calcular lo mismo varias veces
+	
+	//inicializamos souciones_parciales, soluciones y costes_ya_calculados 
+	//añadiendo el viaje directo a soluciones y la primera ciudad a soluciones parciales
+	
+	while (soluciones_parciales tenga elementos):
+		// sacamos una secuencia de soluciones parciales
+	    secuencia = soluciones_parciales.back();
+        soluciones_parciales.pop_back();
+        
+        for i desde 0 hasta numero de filas de la matriz:
+        	if i distinto de la misma ciudad en la que estamos y distinto de la ciudad inicio:
+        		//recordar que la ciudad en la que nos encontramos es secuencia.back()
+        		
+        		añadimos i a la secuencia
+        		
+        		if no se habia calculado el coste de esa secuencia antes:
+        			añadimos la secuencia y el coste al diccionario costes_ya_calculados
+        		else
+        			lo sacamos del diccionario a partir de la llave secuencia
+        		end if
+        		
+        		if no pertenece a las soluciones desechadas:
+        			if coste acumulado < coste que representa el viaje directo:
+        				if i es la ciudad destino:
+        					añadimos la secuencia a soluciones
+        				else
+        					añadimos la secuencia a soluciones_paricales y se la estudiará más tarde
+        				end if
+        			else
+        				lo añadimos a soluciones_desechadas ya que por coste no merece la pena seguir analizandola
+        			end if
+        		end if
+        	end if
+        end for
+    end while
+    
+    //fase de obtencion de la solución óptima entre las posibles calculadas
+    
+    secuencia_mejor = vector que albergará la mejor secuencia
+    coste_mejor = variable entera que almacenará el coste de la secuencia mejor (no se pide pero por añadir información al resultado)
+    
+    for i = 0 hasta recorrer todas las soluciones:
+    	coste_secuencia = variable que almacenará el coste de la secuencia que obtendremos del diccionario costes_ya_calculados
+    	
+    	if es menor que el actualmente coste menor:
+    		actualizamos el valor de coste mejor y de secuencia menor
+    	end if
+    end for
+    
+    mostramos por pantalla el coste del viaje mejor
+    mostramos por pantalla el coste del viaje directo
+    
+    devolvemos secuencia_mejor
+        			

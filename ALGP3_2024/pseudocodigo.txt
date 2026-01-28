@@ -1,0 +1,60 @@
+function gasolinerasGreedy(kmTotalRuta,gasolineras,autonomiaMax)
+	"kmTotalRuta" es un entero que simboliza los kilometros totales de una ruta.
+	"gasolineras" es una lista de enteros que guarda el kilometro del trayecto en el que nos encontramos con una gasolinera.
+	"autonomiaMax" es un entero que guarda la autonomía del autocar que realiza la ruta.
+	
+	solucion <- es un array que guardar las gasolineras en las que paremos (tiene que estar ordenado de menor a mayor)
+	
+	autonomiaAct <- es un entero que guarda la autonomía que nos queda en el kilómetro en el que nos encontramos
+	
+	gasCounter <- entero que funciona como contador de las gasolineras 
+				  por las que ya hemos pasado, se usa para recorrer el vector gasolineras
+				  
+	quedoSinAutonomia <- es un booleano que solo será true si queda sin autonomía,
+						 es decir ya no puede moverse más y por tanto dicha combinacion
+						 de datos carcía de solución.
+						 
+	recorremos cada uno de los kilometros de la ruta y en el que exista una gasolinera
+	e interpretemos que hay que parar a respotar sera almacenado en el vector solución
+	
+	Para cada uno de los kilómetros de la ruta mientras no se quede sin autonomía (quedoSinAutonomia = true):
+		
+		Si en el kilómetro actual hay una gasolinera:
+			
+			Si se trata de la ultima gasolinera:
+				
+				Si no podemos llegar al final de la ruta con la autonomía restante:
+					
+					Añadimos gasolinera[gasCounter] al vector solucion
+					autonomiaAct = autonomiaMax  recargamos la autonomia al maximo
+					
+					autonomiaAct-- porque restamos la correspondiente al kilómetro donde se encuentra la gasolinera
+					
+				end
+			Si no se trata de la ultima gasolinera:
+				
+				Si no podemos llegar a la siguiente con lo que nos queda de autonomia:
+				
+					Añadimos gasolinera[gasCounter] al vector solución
+					autonomiaAct = autonomiaMax  recargamos la autonomia al maximo
+					
+					autonomiaAct-- porque restamos la correspondiente al kilómetro donde se encuentra la gasolinera
+				end
+				
+			end
+			
+			gasCounter++ porque haya repostado o no ya no volveremos a esta
+			
+		Si no se trataba de una gasolinera:
+			autonomiaAct-- se resta la autonomía correspondiente a recorrer ese kilómetro y continuamos
+		end
+		
+		Si nos hemos quedado sin autonomía y no hemos terminado la ruta:
+			quedoSinAutonomía = true
+			se informa por pantalla con un mensaje
+			se vacía el vector solucion (solucion.clear())
+		end
+	end
+	
+	devolvemos solucion
+end function
